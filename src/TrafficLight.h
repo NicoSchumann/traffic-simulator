@@ -47,7 +47,7 @@ public:
  
     // constructor / desctructor
     TrafficLight();
-    ~TrafficLight() = default;
+    ~TrafficLight();
 
     // getters / setters
     TrafficLightPhase getCurrentPhase() const;

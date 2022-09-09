@@ -26,6 +26,7 @@ void MessageQueue<T>::send(T &&msg)
     // as well as _condition.notify_one() to add a new message to the queue and afterwards send a notification.
 
     std::lock_guard<std::mutex> lockGuard(_mutex);
+    _queue.clear();  // flushes queue for avoiding accumulations of messages
     _queue.push_back( std::move(msg) );
     _cond.notify_one();  // notify client after pushing msg into deque
 }
@@ -38,6 +39,10 @@ TrafficLight::TrafficLight()
     _messageQueue = std::make_shared<MessageQueue<TrafficLightPhase>>();
     _currentPhase = TrafficLightPhase::green;
 }
+TrafficLight::~TrafficLight()
+{
+    // nothing to do here
+}
 
 void TrafficLight::waitForGreen()
 {
@@ -46,6 +51,7 @@ void TrafficLight::waitForGreen()
     // Once it receives TrafficLightPhase::green, the method returns.
     while(true)
     {
+        // goes indirectly in wait state
         if( _messageQueue->receive() == TrafficLightPhase::green)
         {
             return;
@@ -74,8 +80,8 @@ void TrafficLight::cycleThroughPhases()
 
     // make random facility
     std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(4000,6000);
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> distrib(4000,6000);
 
     std::chrono::time_point<std::chrono::system_clock> lastUpdate;
  
